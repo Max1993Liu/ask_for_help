@@ -1,0 +1,14 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "helpme"
+author = "Zhehao Liu"
+author-email = "madmax_liuzhehao@163.com"
+home-page = "https://github.com/Max1993Liu/ask_for_help"
+requires-python = ">=3"
+description-file = "README.md"
+keywords = "Debug Toy Email"
+classifiers = ["License :: OSI Approved :: MIT License"]
+
