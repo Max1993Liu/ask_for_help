@@ -2,14 +2,15 @@ import smtplib
 import ssl
 import json
 import os
+import socket
 import functools
 from pathlib import Path
 from email.message import EmailMessage
 
-# from .trackerror import get_code
+from .trackerror import get_code
 
 
-__all__ = ['ask_for_help', 'show_recipients', 'add_recipient', 'reset_my_email']
+__all__ = ['ask_for_help', 'show_recipients', 'add_recipient', 'reset_my_email', 'init_setting']
 
 
 
@@ -22,7 +23,7 @@ def get_config():
 
 
 def write_config(config):
-	with open(_CONFIG_PATH, 'wb') as f:
+	with open(_CONFIG_PATH, 'w') as f:
 		return json.dump(config, f)
 
 
@@ -38,12 +39,11 @@ def show_recipients():
 	return get_config()['GOOD_PEOPLE']
 
 
-def reset_my_email(email):
+def reset_my_email(email, password, host=''):
 	config = get_config()
-	addr = input('Enter your email address:')
-	pwd = input('Enter your email password:')
-	config['MY_EMAIL'] = addr
-	config['MY_PASSWORD'] = pwd
+	config['MY_EMAIL'] = email
+	config['MY_PASSWORD'] = password
+	config['HOST'] = host or socket.getfqdn()
 	write_config(config)
 
 
@@ -57,15 +57,24 @@ def init_setting():
 	write_config(config)
 
 
-def send_email(msg, address):
-	""" Send msg to Max """
-	context = ssl.create_default_context()
-	
-	with smtplib.SMTP_SSL("smtp.exmail.qq.com", 465, context=context) as server:
-		MY_EMAIL, MY_PASSWORD = get_config['MY_EMAIL'], get_config['MY_PASSWORD']
-		server.login(MY_EMAIL, MY_PASSWORD)
-		server.send_message(msg, MY_EMAIL, [address])
-		server.close()    
+def send_email(msg, address, use_ssl=False):
+	""" Send msg """
+	MY_EMAIL, MY_PASSWORD = get_config()['MY_EMAIL'], get_config()['MY_PASSWORD']
+	MY_HOST = config['HOST']
+
+	if use_ssl:
+		context = ssl.create_default_context()
+		
+		with smtplib.SMTP_SSL(MY_HOST, port=465, context=context) as server:
+			server.login(MY_EMAIL, MY_PASSWORD)
+			server.send_message(msg, MY_EMAIL, [address])
+			server.close()
+	else:
+		with smtplib.SMTP(MY_HOST, port=587) as server:
+			server.starttls()  
+			server.login(MY_EMAIL, MY_PASSWORD)
+			server.send_message(msg, MY_EMAIL, [address])
+			server.close()  
 
 
 def create_message(code, ex_msg, address):
