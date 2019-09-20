@@ -1,6 +1,6 @@
 """ Ask your friends to debug for you! """
 
-from .helpme import ask_for_help
+from .helpme import *
 
 __author__ = 'Max Liu'
 
